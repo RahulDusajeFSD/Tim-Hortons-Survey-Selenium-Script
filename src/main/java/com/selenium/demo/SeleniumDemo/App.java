@@ -1,28 +1,43 @@
-package com.selenium.demo.SeleniumDemo;
+package com.selenium.demo.seleniumdemo;
 
 
 import java.time.Duration;
 import java.util.Scanner;
 
 import org.openqa.selenium.By;
+import org.openqa.selenium.NoSuchElementException;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.chrome.ChromeDriver;
+import org.openqa.selenium.chrome.ChromeOptions;
 import org.openqa.selenium.interactions.Actions;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
+
+import io.github.bonigarcia.wdm.WebDriverManager;
 
 public class App {
 	
 	static final int DELAY_VALUE=2500;
 	
-	
+
+//Selenium Head Mode: The GUI window opens after chrome driver is executed
+//
+//HEadless mode - No GUI window opens.
+
+
 	
 	   public static void main(String[] args) {
 	    	
-			 System.setProperty("webdriver.chrome.driver", "/Users/rahuldusaje/Documents/JAR_Files/chromedriver");
-
-		     WebDriver driver = new ChromeDriver();
+		
+		   WebDriverManager.chromedriver().setup();
+		   
+		   // Making WebDriver headless so not to see GUI window.
+		   ChromeOptions options = new ChromeOptions();
+		   options.addArguments("--headless=new");
+		   WebDriver driver = new ChromeDriver(options);
+		   
+		   
 		        
 		     driver.get("https://www.telltims.ca/");
 		   	  
@@ -34,11 +49,9 @@ public class App {
 	        
 	        System.out.println("Enter Employee name:");
 	        String employeeName = scanner.nextLine();
-	        System.out.println(employeeName);
-	        
-	       // 288256502110227050623
-	      
-	        runSurvey(driver, code, employeeName);
+	        System.out.println("Wait for survey to scan...");
+
+	        System.out.println(runSurvey(driver, code, employeeName));
 	    
 	   
 	    }
@@ -67,11 +80,12 @@ public class App {
 		
 	}
 	
-	 public static void runSurvey (WebDriver driver, String code, String employeeName) {
+	 public static String runSurvey (WebDriver driver, String code, String employeeName) {
 	    	
 		 
 
-	    
+		 	String validationCode = new String();
+		 
 		   WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(3));
 	       wait.until(ExpectedConditions.frameToBeAvailableAndSwitchToIt(By.className("Home_iframe__T3nfU")));
 	     
@@ -90,8 +104,16 @@ public class App {
 	    	   
 			Thread.sleep(DELAY_VALUE);
 			
+			// if check - if the code has already been used.
 			
-			clickById(driver, "QID14-1-label", actions);
+			try {
+				clickById(driver, "QID14-1-label", actions);
+			}catch(NoSuchElementException e) {
+				return "The Coupon Code has already been used";
+				
+				
+			}
+		
 	        
 			clickById(driver, "NextButton", actions);
 			
@@ -226,9 +248,7 @@ public class App {
 	       
 	        WebElement validationCodeElement = endOfSurveyDiv.findElement(By.tagName("strong"));
 
-	        String validationCode = validationCodeElement.getText();
-	        System.out.println("Validation Code: " + validationCode);
-	        
+	        validationCode = validationCodeElement.getText();
 	        
 	        
 		} catch (InterruptedException e) {
@@ -236,9 +256,10 @@ public class App {
 			e.printStackTrace();
 		}
 	       
-	 
+	       
 	       
 	        driver.quit();
+	        return "Validation Code: " + validationCode;
 	    }
 	
 	
